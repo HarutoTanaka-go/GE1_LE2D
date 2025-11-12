@@ -1,26 +1,21 @@
-#include <Windows.h>
 #include "Input.h"
 #include "cassert"
-#include <wrl.h>
-using namespace Microsoft::WRL;
-////DirectINPUT
-//#define DIRECTINPUT_VERSION 0x0800
-//#include <dinput.h>
 
 #pragma comment(lib,"dinput8.lib")
 #pragma comment(lib,"dxguid.lib")
 
 
-void Input::Initialise(HINSTANCE hinstance, HWND hwnd)
+void Input::Initialise(WinApp* winApp)
 {
 
+	this->winApp_ = winApp;
 
 	HRESULT result;
 
 	//DirectInput 初期化
 	/*IDirectInput8* directInput = nullptr;*/
 	result = DirectInput8Create(
-		hinstance,
+		winApp->GetHInstance(),
 		DIRECTINPUT_VERSION,
 		IID_IDirectInput8,
 		(void**)&directInput,
@@ -42,7 +37,7 @@ void Input::Initialise(HINSTANCE hinstance, HWND hwnd)
 
 	//排他制御レベルのセット
 	result = keyboard->SetCooperativeLevel(
-		hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
+		winApp->GetHwnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
 	assert(SUCCEEDED(result));
 
 }
@@ -56,7 +51,7 @@ void Input::Update()
 
 	keyboard->Acquire();
 
-	
+
 	keyboard->GetDeviceState(sizeof(key), key);
 
 
