@@ -9,6 +9,7 @@
 #include <dxcapi.h>
 #include "Input.h"
 #include "WinApp.h"
+#include "DirectXCommon.h"
 #include "externals/imgui/imgui.h"
 #include "externals/imgui/imgui_impl_dx12.h"
 #include "externals/imgui/imgui_impl_win32.h"
@@ -530,6 +531,8 @@ ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device, int32_t 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	WinApp* winApp = nullptr;
+	DirectXCommon* dxCommon = nullptr;
+
 
 	winApp = new WinApp();
 	winApp->Initialize();
@@ -828,34 +831,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState));
 	assert(SUCCEEDED(hr));
 
-	//DirectInput 初期化
-	IDirectInput8* directInput = nullptr;
-	hr = DirectInput8Create(
-		winApp->GetHInstance(),
-		DIRECTINPUT_VERSION,
-		IID_IDirectInput8,
-		(void**)&directInput,
-		nullptr
-	);
-	assert(SUCCEEDED(hr));
+	////DirectInput 初期化
+	//IDirectInput8* directInput = nullptr;
+	//hr = DirectInput8Create(
+	//	winApp->GetHInstance(),
+	//	DIRECTINPUT_VERSION,
+	//	IID_IDirectInput8,
+	//	(void**)&directInput,
+	//	nullptr
+	//);
+	//assert(SUCCEEDED(hr));
 
-	//キーボード用デバイスの初期化
-	IDirectInputDevice8* keyboard = nullptr;
-	hr = directInput->CreateDevice(
-		GUID_SysKeyboard,
-		&keyboard,
-		NULL
-	);
-	assert(SUCCEEDED(hr));
+	////キーボード用デバイスの初期化
+	//IDirectInputDevice8* keyboard = nullptr;
+	//hr = directInput->CreateDevice(
+	//	GUID_SysKeyboard,
+	//	&keyboard,
+	//	NULL
+	//);
+	//assert(SUCCEEDED(hr));
 
-	//入力データ形式のセット
-	hr = keyboard->SetDataFormat(&c_dfDIKeyboard);
-	assert(SUCCEEDED(hr));
+	////入力データ形式のセット
+	//hr = keyboard->SetDataFormat(&c_dfDIKeyboard);
+	//assert(SUCCEEDED(hr));
 
-	//排他制御レベルのセット
-	hr = keyboard->SetCooperativeLevel(
-		winApp->GetHwnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
-	assert(SUCCEEDED(hr));
+	////排他制御レベルのセット
+	//hr = keyboard->SetCooperativeLevel(
+	//	winApp->GetHwnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
+	//assert(SUCCEEDED(hr));
 
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * 6);
 
@@ -1065,12 +1068,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #pragma endregion WindowAPIを利用したメッセージの受信と処理ここまで
 
 		//キーボード情報の取得開始
-		keyboard->Acquire();
 		input->Update();
 
 		memcpy(prekey, key, 256);
-
-		keyboard->GetDeviceState(sizeof(key), key);
 
 		//ゲームの処理
 
