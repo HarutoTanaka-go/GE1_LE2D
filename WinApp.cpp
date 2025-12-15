@@ -8,7 +8,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 //ウィンドウプロシージャ
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	if (ImGui_ImplWin32_WndProcHandler(hwnd,msg,wparam,lparam))
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 	{
 		return true;
 	}
@@ -16,7 +16,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	//メッセージに応じてゲーム固有の処理を行う
 	switch (msg)
 	{
-	//ウィンドウが破壊された
+		//ウィンドウが破壊された
 	case WM_DESTROY:
 		//OSに対して、アプリの終了を伝える
 		PostQuitMessage(0);
@@ -31,12 +31,10 @@ void WinApp::Initialize()
 {
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 
-
-	/*WNDCLASS wc{};*/
 	//ウィンドウプロシージャ
 	wc.lpfnWndProc = WindowProc;
 	//ウィンドウクラス名(なんでもいい)
-	wc.lpszClassName = L"LE2D_15_タナカ_ハルト_";
+	wc.lpszClassName = L"LE2D_13_タナカ_ハルト";
 	//インスタンスハンドル
 	wc.hInstance = GetModuleHandle(nullptr);
 	//カーソル
@@ -44,10 +42,6 @@ void WinApp::Initialize()
 
 	//ウィンドウクラスを登録
 	RegisterClass(&wc);
-
-	////クライアント両雨域のサイズ
-	//const int32_t kClientWidth = 1280;
-	//const int32_t kClientHeight = 720;
 
 	//ウィンドウサイズを表す構造体にクライアント領域を入れる
 	RECT wrc = { 0,0,kClientWidth,kClientHeight };
@@ -69,8 +63,6 @@ void WinApp::Initialize()
 		wc.hInstance,
 		nullptr);
 
-
-
 	//ウィンドウを表示する
 	ShowWindow(hwnd, SW_SHOW);
 
@@ -81,7 +73,7 @@ void WinApp::Update()
 
 }
 
-void WinApp::Finalize()
+void WinApp::Finalize() const
 {
 	CloseWindow(hwnd);
 	CoUninitialize();
@@ -90,7 +82,7 @@ void WinApp::Finalize()
 bool WinApp::ProcessMessage()
 {
 	MSG msg{};
-	if (PeekMessage(&msg, nullptr,0,0,PM_REMOVE))
+	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);

@@ -14,7 +14,7 @@ public://メンバ関数
 	//更新
 	void Update();
 	//終了
-	void Finalize();
+	void Finalize() const;
 
 	//メッセージの処理
 	bool ProcessMessage();
