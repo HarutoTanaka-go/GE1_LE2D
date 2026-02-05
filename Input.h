@@ -33,6 +33,7 @@ public://メンバ変数
 	bool TriggerKey(BYTE keyNumber) const;
 
 
+
 private:
 
 	//キーボードのデバイス

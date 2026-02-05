@@ -28,6 +28,18 @@ void Input::Initialize(WinApp* winApp)
     // 協調レベルのセット
     result = keyboard->SetCooperativeLevel(winApp->GetHwnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
     assert(SUCCEEDED(result));
+
+    //DirectInput 初期化
+
+    result = DirectInput8Create(
+        winApp->GetHInstance(),
+        DIRECTINPUT_VERSION,
+        IID_IDirectInput8,
+        (void**)&directInput,
+        nullptr
+    );
+    assert(SUCCEEDED(result));
+
 }
 
 void Input::Update()

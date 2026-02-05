@@ -63,6 +63,13 @@ public:
 	//ImGuiの初期化
 	void CreateImGui();
 
+	void infoQueue();
+
+	void DXC_Initialize();
+
+
+
+	void DxKansu_Initialize();
 
 	//描画開始
 	void PreDraw();
@@ -76,14 +83,24 @@ public:
 	ID3D12Resource* CreateDepthStencilTextureResource(int32_t width, int32_t height);
 
 	/// <summary>
-	/// SRVの指定番号のCPUデスクリプタハンドルを取得する
-	/// </summary>
-	//D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPUDescriptorHandle(uint32_t index);
+/// SRVの指定番号のCPUデスクリプタハンドルを取得する
+/// </summary>
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPUDescriptorHandle(uint32_t index);
 
 	/// <summary>
 	/// SRVの指定番号のGPUデスクリプタハンドルを取得する
 	/// </summary>
-	//D3D12_CPU_DESCRIPTOR_HANDLE GetSRVGPUDescriptorHandle(uint32_t index);
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPUDescriptorHandle(uint32_t index);
+
+	/// <summary>
+/// 指定番号のCPUデスクリプタハンドルを取得する
+/// </summary>
+	static D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index);
+
+	/// <summary>
+	/// 指定番号のGPUデスクリプタハンドルを取得する
+	/// </summary>
+	static D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index);
 
 	////getter
 	//ID3D12Device* GetDevice() const { return device.Get(); }
@@ -109,6 +126,8 @@ public:
 	);
 
 
+
+
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(size_t sizeInBytes);
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(const DirectX::TexMetadata& metadata);
@@ -116,6 +135,14 @@ public:
 	void UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
 
 	static DirectX::ScratchImage LoadTexture(const std::string& filePath);
+
+
+	Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
+
+
+
+	IDxcBlob* vertexShaderBlob;
 
 private:
 
@@ -139,7 +166,7 @@ private:
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
-	ID3D12PipelineState* graphicsPipelineState = nullptr;
+
 
 
 	/*Microsoft::WRL::ComPtr<ID3D12Fence> fence;*/

@@ -28,31 +28,34 @@ void DirectXCommon::Initialize(WinApp* winApp)
 	//スワップチェーンの生成
 	CreateSwapChain();
 
+	//深度バッファ
+	CreateDepth();
+
 	//ディスクリプタヒープの生成
 	CreateDescriptor();
-
-	//DSV生成
-	CreateDSV();
 
 	//RTV生成
 	CreateRTV();
 
+	//DSV生成
+	CreateDSV();
+
 	//fenceの生成
 	CreateFence();
-
-	//深度バッファ
-	CreateDepth();
 
 	//ビューポート矩形の初期化
 	CreateViewport();
 
-	//シザリング矩形の初期化
-	CreateScissorRect();
+	//ビューポート矩形の初期化
+	CreateViewport();
+
 
 	//ImGuiの初期化
 	CreateImGui();
 
+	DXC_Initialize();
 
+	
 }
 
 //デバイスの初期化
@@ -223,15 +226,7 @@ void DirectXCommon::CreateFence()
 	fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	assert(fenceEvent != nullptr);
 
-	//Fanceの値が指定したSignal値たどり着いているか確認する
-	//GetCompletedValueの初期値はFance作成時に渡した初期値
-	if (fence->GetCompletedValue() < fenceValue)
-	{
-		//指定したSignal値までGPUがたどり着いていない場合、たどり着くまで待つように、イベントを設定する
-		fence->SetEventOnCompletion(fenceValue, fenceEvent);
-		//イベントが発火するまで待つ
-		WaitForSingleObject(fenceEvent, INFINITE);
-	}
+	
 
 }
 
@@ -274,6 +269,58 @@ void DirectXCommon::CreateImGui()
 	ImGui_ImplDX12_Init(device.Get(), swapChainDesc.BufferCount, swapChainResources[0]->GetDesc().Format, srvDescriptorHeap.Get(), srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 }
+
+void DirectXCommon::infoQueue()
+{
+
+	ID3D12InfoQueue* infoQueue = nullptr;
+
+	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+
+		//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+
+
+		//抑制するメッセージのID
+		D3D12_MESSAGE_ID denyIds[] = {
+			D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE
+		};
+		D3D12_MESSAGE_SEVERITY severities[]{ D3D12_MESSAGE_SEVERITY_INFO };
+		D3D12_INFO_QUEUE_FILTER filter{};
+		filter.DenyList.NumIDs = _countof(denyIds);
+		filter.DenyList.pIDList = denyIds;
+		filter.DenyList.NumSeverities = _countof(severities);
+		filter.DenyList.pSeverityList = severities;
+
+		infoQueue->PushStorageFilter(&filter);
+		infoQueue->Release();
+	}
+
+
+
+}
+
+void DirectXCommon::DXC_Initialize()
+{
+
+	hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&dxcUtils));
+	assert(SUCCEEDED(hr));
+	hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&dxcCompiler));
+	assert(SUCCEEDED(hr));
+	hr = dxcUtils->CreateDefaultIncludeHandler(&includeHandler);
+	assert(SUCCEEDED(hr));
+
+}
+
+
+
+void DirectXCommon::DxKansu_Initialize()
+{
+}
+
+
 
 Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DirectXCommon::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible)
 {
@@ -325,6 +372,32 @@ ID3D12Resource* DirectXCommon::CreateDepthStencilTextureResource(int32_t width, 
 	return resource;
 }
 
+D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::GetSRVCPUDescriptorHandle(uint32_t index)
+{
+	return GetCPUDescriptorHandle(srvDescriptorHeap, srvDescriptorSize, index);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE DirectXCommon::GetSRVGPUDescriptorHandle(uint32_t index)
+{
+	return GetGPUDescriptorHandle(srvDescriptorHeap, srvDescriptorSize, index);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index)
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE result = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	result.ptr += static_cast<SIZE_T>(descriptorSize * index);
+	return result;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE DirectXCommon::GetGPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE result = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	result.ptr += static_cast<SIZE_T>(descriptorSize * index);
+	return result;
+}
+
+
+
 Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(const std::wstring& filePath, const wchar_t* profile)
 {
 	Microsoft::WRL::ComPtr<IDxcBlob> shaderBlob;
@@ -335,6 +408,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(const std::wstring
 	Microsoft::WRL::ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
 	hr = dxcUtils->LoadFile(filePath.c_str(), nullptr, &shaderSource);
 	assert(SUCCEEDED(hr));
+
 	DxcBuffer shaderSourceBuffer;
 	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
 	shaderSourceBuffer.Size = shaderSource->GetBufferSize();
@@ -568,10 +642,19 @@ void DirectXCommon::PostDraw()
 
 	//コマンドキューにシグナルを送る
 	commandQueue->Signal(fence, fenceValue);
+	//Fanceの値が指定したSignal値たどり着いているか確認する
+	//GetCompletedValueの初期値はFance作成時に渡した初期値
+	if (fence->GetCompletedValue() < fenceValue)
+	{
+		//指定したSignal値までGPUがたどり着いていない場合、たどり着くまで待つように、イベントを設定する
+		fence->SetEventOnCompletion(fenceValue, fenceEvent);
+		//イベントが発火するまで待つ
+		WaitForSingleObject(fenceEvent, INFINITE);
+	}
 
-	//コマンド完了待ち
-	//コマンドリストの内容を確定させ、全てのコマンドを積んでからcloseする
-	hr = commandList->Close();
+	////コマンド完了待ち
+	////コマンドリストの内容を確定させ、全てのコマンドを積んでからcloseする
+	//hr = commandList->Close();
 
 	//コマンドアロケータ―のリセット
 	hr = commandAllocator->Reset();
