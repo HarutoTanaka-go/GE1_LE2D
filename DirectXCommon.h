@@ -150,6 +150,7 @@ private:
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState;
 
+
 	//WindowsAPI
 	WinApp* winApp = nullptr;
 
