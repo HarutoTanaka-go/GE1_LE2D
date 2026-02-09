@@ -27,6 +27,7 @@ void Sprite::Initialize(SpriteCommon* spriteCommon, std::string textureFilePath)
 }
 
 
+
 void Sprite::Update() {
 
 	float left = 0.0f - anchorPoint.x;
