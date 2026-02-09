@@ -7,7 +7,7 @@ on:
 
 env:
   #リポジトリのルートディレクトリを基点としたソリューションファイルのパス
-  SOLUTION_FILE_PATH: CG_2_LED2_15-master/GE_2_LED2.sln
+  SOLUTION_FILE_PATH: CG_2_LED2.sln
   # VIsual Studio の構成(Debug / Release)
   CONFIGURATION: Debug
 
