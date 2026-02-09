@@ -77,6 +77,7 @@ Transform uvTransformSprite{
 	{0.0f,0.0f,0.0f}
 };
 
+
 struct Material
 {
 	Vector4 color;
